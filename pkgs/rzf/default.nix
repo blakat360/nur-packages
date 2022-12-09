@@ -1,19 +1,26 @@
 { pkgs ? import <nixpkgs> }:
-
+let
+  rzf =
+    pkgs.writeShellApplication {
+      name = "rzf";
+      runtimeInputs = with pkgs; [ fzf rofi ];
+      text = ''
+        if [ "$TERM" == 'screen' ]; then
+          fzf-tmux
+        else
+        	rofi -dmenu
+        fi
+      '';
+    };
+in
 pkgs.stdenv.mkDerivation rec {
-  name = "rzf";
+  name = "rzf-${version}";
+  version = "0.1";
 
-  src = pkgs.writeShellApplication {
-    name = "rzf";
-    runtimeInputs = with pkgs; [ fzf rofi ];
-    text = ''
-      if [ "$TERM" == 'screen' ]; then
-        fzf-tmux
-      else
-      	rofi -dmenu
-      fi
-    '';
-  };
+  installPhase = ''
+  	mkdir -p $out/bin
+  	cp ${rzf} $out/bin
+  '';
 
   meta = with pkgs.lib; {
     description = ''
@@ -21,7 +28,7 @@ pkgs.stdenv.mkDerivation rec {
         e.g. `printf "hello\nworld" | rzfi`
       	fzf-tmux is used when in tmux, rofi -dmenu is used outside of tmux
     '';
-		platforms = platforms.all;
+    platforms = platforms.all;
   };
 
 }
